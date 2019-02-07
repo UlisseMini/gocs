@@ -16,6 +16,8 @@ import (
 
 	log "github.com/UlisseMini/leetlog"
 	"github.com/go-yaml/yaml"
+	"github.com/gobuffalo/packd"
+	"github.com/gobuffalo/packr/v2"
 	homedir "github.com/mitchellh/go-homedir"
 )
 
@@ -25,29 +27,64 @@ type Config struct {
 	Author string // Full name of the author
 }
 
+var home string
+
 func init() {
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(),
 			"Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
+
+	var err error
+	home, err = homedir.Dir()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
+
+var box = packr.New("default_templates", "./default_templates")
 
 func main() {
 	flag.Parse()
 
 	conf := getConfig()
+	createDir()
 
 	log.Info(conf)
+}
+
+// create the ~/.goc directory if it does not exist.
+func createDir() {
+	if _, err := os.Stat(filepath.Join(home, "goc")); err == nil {
+		return
+	}
+
+	err := box.Walk(func(path string, file packd.File) error {
+		// if it has a parent directory create it.
+		if d := filepath.Dir(path); d != "." {
+			if err := os.Mkdir(d, 0755); err != nil {
+				log.Debugf("mkdir %q: %v", d, err)
+			}
+		}
+
+		log.Debugf("walk: %s", path)
+		b, err := box.Find(path)
+		if err != nil {
+			return err
+		}
+
+		return ioutil.WriteFile(path, b, 0666)
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // getConfig gets the config file from ~/.goc.yaml and returns it,
 // if it does not exist it creates it.
 func getConfig() (conf Config) {
-	home, err := homedir.Dir()
-	if err != nil {
-		log.Fatal(err)
-	}
 	path := filepath.Join(home, ".goc.yaml")
 
 	// Read the config file
