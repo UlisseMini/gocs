@@ -43,7 +43,7 @@ func init() {
 	}
 }
 
-var box = packr.New("default_templates", "./default_templates")
+var box = packr.New("templates", "./default_templates")
 
 func main() {
 	flag.Parse()
@@ -56,8 +56,14 @@ func main() {
 
 // create the ~/.goc directory if it does not exist.
 func createDir() {
-	if _, err := os.Stat(filepath.Join(home, "goc")); err == nil {
+	goc := filepath.Join(home, ".goc")
+	if _, err := os.Stat(goc); err == nil {
 		return
+	}
+
+	log.Infof("Create %q", goc)
+	if err := mkchdir(goc); err != nil {
+		log.Fatal(err)
 	}
 
 	err := box.Walk(func(path string, file packd.File) error {
@@ -71,12 +77,14 @@ func createDir() {
 		log.Debugf("walk: %s", path)
 		b, err := box.Find(path)
 		if err != nil {
+			log.Debugf("find %q: %v", path, err)
 			return err
 		}
 
 		return ioutil.WriteFile(path, b, 0666)
 	})
 
+	log.Debugf("chdir %q: %v", "..", os.Chdir(".."))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,4 +141,15 @@ func input(s *bufio.Scanner, prompt string) string {
 	}
 
 	return s.Text()
+}
+
+// make and chdir into a directory
+func mkchdir(path string) error {
+	// create the directory
+	if err := os.Mkdir(path, 0755); err != nil {
+		return err
+	}
+
+	// chdir into it
+	return os.Chdir(path)
 }
