@@ -113,6 +113,7 @@ func createDir() {
 		log.Fatal(err)
 	}
 
+	// unpack box into ~/.goc
 	err = box.Walk(func(path string, file packd.File) error {
 		// if it has a parent directory create it.
 		if err := createParents(path); err != nil {
