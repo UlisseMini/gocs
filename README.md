@@ -14,12 +14,10 @@ goc <projectname> [template]
 
 when creating templates you can hook into the following variables inside files.
 ```
---------------------------------------------------------------------------------
-{{.Project}} | name of the project being created.                              |
-{{.Year}}    | the current year, useful for licenses                           |
-{{.Github}}  | Github username, stored in ~/.goc/config.yaml                   |
-{{.Author}}  | Full name of the author, stored in ~/.goc/config.yaml           |
---------------------------------------------------------------------------------
+{{.Project}} | name of the project being created.
+{{.Year}}    | the current year, useful for licenses
+{{.Github}}  | Github username, stored in ~/.goc/config.yaml
+{{.Author}}  | Full name of the author, stored in ~/.goc/config.yaml
 ```
 
 ## Examples
@@ -39,8 +37,8 @@ to use this you could create a directory `~/.goc/templates/python` then generate
 a project using it with `goc myproject python` where python says "use the python template"
 ```python
 # Copyright {{.Year}} {{.Author}}
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files... (license continues)
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files... (license continues)
 
 def main():
 	# TODO Write code
