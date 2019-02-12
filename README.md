@@ -14,7 +14,7 @@ goc <projectname> [template]
 
 ## Examples
 ```bash
-# look inside the ~/.goc/go directory and use templates from there to create
+# look inside the ~/.goc/templates directory and use templates from there to create
 # files.
 goc foobar go
 ```
