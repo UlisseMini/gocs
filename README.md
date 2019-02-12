@@ -1,13 +1,13 @@
 # goc
 goc is a powerful project generation tool written in go,
-template files can be put in ~/.goc and used without changing any code.
+template files can be put in ~/.goc/templates and used without changing any code.
 
 ## Installation
 Download a binary from the releases page
 
 ## Usage
 if template is not supplied the default for golang is used.
-the default can be changed in ~/.goc
+the default can be changed in ~/.goc/templates
 ```bash
 goc <projectname> [template]
 ```
