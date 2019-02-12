@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/go-yaml/yaml"
 	"github.com/gobuffalo/packd"
 	"github.com/gobuffalo/packr/v2"
-	homedir "github.com/mitchellh/go-homedir"
 )
 
 // Config file struct, will be stored in ~/.goc/config.yaml
@@ -30,7 +30,7 @@ func init() {
 	flag.Usage = usage
 
 	var err error
-	home, err = homedir.Dir()
+	home, err = homedir()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -199,4 +199,17 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "<project> is the Project's name")
 	fmt.Fprintln(os.Stderr, "[template] is looked for in ~/.goc/")
 	flag.PrintDefaults()
+}
+
+// get the current users home directory
+func homedir() (string, error) {
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	if u.HomeDir == "" {
+		return "", err
+	}
+
+	return u.HomeDir, nil
 }
