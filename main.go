@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	log "github.com/UlisseMini/leetlog"
 	"github.com/go-yaml/yaml"
@@ -21,89 +22,129 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
-// Config file struct, will be stored in ~/.goc.yaml
+// Config file struct, will be stored in ~/.goc/config.yaml
 type Config struct {
 	Github string // Github username
 	Author string // Full name of the author
 }
 
-var home string
-
 func init() {
-	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(),
-			"Usage of %s:\n", os.Args[0])
-		flag.PrintDefaults()
-	}
+	flag.Usage = usage
 
 	var err error
 	home, err = homedir.Dir()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	goc = filepath.Join(home, ".goc")
+	configPath = filepath.Join(home, ".goc/config.yaml")
 }
 
-var box = packr.New("templates", "./default_templates")
+var box = packr.New("", "./goc_default")
+
+// create parent directories for path.
+func createParents(path string) error {
+	dir := filepath.Dir(path)
+	if dir == "" {
+		return nil
+	}
+
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("MkdirAll: %v", err)
+	}
+	return nil
+}
+
+var (
+	home       string // ~/
+	goc        string // ~/.goc
+	configPath string // ~/.goc/config.yaml
+)
 
 func main() {
+	d := flag.Bool("d", false, "print debug logs")
 	flag.Parse()
 
-	conf := getConfig()
-	createDir()
+	// switch over flags
+	switch {
+	case *d:
+		log.DefaultLogger.Ldebug.SetOutput(os.Stderr)
+	}
 
-	log.Info(conf)
+	createDir()         // create ~/.goc if needed
+	conf := getConfig() // read ~/.goc/config.yaml and create it if needed
+
+	proj := Project{
+		Config:  conf,
+		Year:    time.Now().Year(),
+		Project: flag.Arg(0),
+	}
+
+	templateDir := flag.Arg(1)
+	if templateDir == "" {
+		templateDir = "default"
+	}
+
+	if err := proj.Create(templateDir); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // create the ~/.goc directory if it does not exist.
 func createDir() {
-	goc := filepath.Join(home, ".goc")
 	if _, err := os.Stat(goc); err == nil {
 		return
 	}
 
-	log.Infof("Create %q", goc)
+	// save our current working directory
+	original, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// return to the original directory we were in
+	defer func() {
+		if err := os.Chdir(original); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	if err := mkchdir(goc); err != nil {
 		log.Fatal(err)
 	}
 
-	err := box.Walk(func(path string, file packd.File) error {
+	err = box.Walk(func(path string, file packd.File) error {
 		// if it has a parent directory create it.
-		if d := filepath.Dir(path); d != "." {
-			if err := os.Mkdir(d, 0755); err != nil {
-				log.Debugf("mkdir %q: %v", d, err)
-			}
+		if err := createParents(path); err != nil {
+			return fmt.Errorf("walk: createParents: %v", err)
 		}
 
 		log.Debugf("walk: %s", path)
 		b, err := box.Find(path)
 		if err != nil {
-			log.Debugf("find %q: %v", path, err)
+			log.Debugf("walk: find %q: %v", path, err)
 			return err
 		}
 
 		return ioutil.WriteFile(path, b, 0666)
 	})
-
-	log.Debugf("chdir %q: %v", "..", os.Chdir(".."))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// getConfig gets the config file from ~/.goc.yaml and returns it,
+// getConfig gets the config file from ~/.goc/config.yaml and returns it,
 // if it does not exist it creates it.
 func getConfig() (conf Config) {
-	path := filepath.Join(home, ".goc.yaml")
-
 	// Read the config file
-	b, err := ioutil.ReadFile(path)
+	b, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		// if it is not a path error then fatal
 		if _, ok := err.(*os.PathError); !ok {
 			log.Fatal(err)
 		}
 		// otherwise create a config
-		conf = createConfig(path)
+		conf = createConfig(configPath)
 	}
 
 	if err := yaml.Unmarshal(b, &conf); err != nil {
@@ -152,4 +193,11 @@ func mkchdir(path string) error {
 
 	// chdir into it
 	return os.Chdir(path)
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s: <project> [template]\n", os.Args[0])
+	fmt.Fprintln(os.Stderr, "<project> is the Project's name")
+	fmt.Fprintln(os.Stderr, "[template] is looked for in ~/.goc/")
+	flag.PrintDefaults()
 }
