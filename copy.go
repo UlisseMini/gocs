@@ -18,6 +18,8 @@ import (
 type DirCopy struct {
 	Tmpl *template.Template // possible issue with this being reused
 	Data interface{}
+
+	Ignore []string // filenames to ignore
 }
 
 // Copy copies src to dest, doesn't matter if src is a directory or a file
@@ -33,6 +35,12 @@ func (d DirCopy) Copy(src, dest string) error {
 // Because this "dispatch" could be called recursively,
 // "info" MUST be given here, NOT nil.
 func (d DirCopy) dispatch(src, dst string, info os.FileInfo) error {
+	for _, ignore := range d.Ignore {
+		if info.Name() == ignore {
+			return nil
+		}
+	}
+
 	// parse the name as a template
 	t, err := d.Tmpl.Parse(dst)
 	if err != nil {

@@ -28,10 +28,6 @@ func (p Project) Create(templateDir string) error {
 		Data: p,
 	}
 
-	src := filepath.Join(goc, "templates", templateDir)
-	if err := d.Copy(src, p.Project); err != nil {
-		return err
-	}
-
-	return nil
+	src := filepath.Join(goc, templates, templateDir)
+	return d.Copy(src, p.Project)
 }

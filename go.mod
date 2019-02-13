@@ -6,6 +6,6 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gobuffalo/packd v0.0.0-20181212173646-eca3b8fd6687
 	github.com/gobuffalo/packr/v2 v2.0.0-rc.15
-	github.com/spf13/afero v1.2.0 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc // indirect
 )

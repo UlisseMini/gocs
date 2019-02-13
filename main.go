@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"time"
 
@@ -18,7 +17,11 @@ import (
 	"github.com/go-yaml/yaml"
 	"github.com/gobuffalo/packd"
 	"github.com/gobuffalo/packr/v2"
+	"github.com/mitchellh/go-homedir"
 )
+
+// Only used on first program run
+var box = packr.New("", "./goc_default")
 
 // Config file struct, will be stored in ~/.goc/config.yaml
 type Config struct {
@@ -26,33 +29,7 @@ type Config struct {
 	Author string // Full name of the author
 }
 
-func init() {
-	flag.Usage = usage
-
-	var err error
-	home, err = homedir()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	goc = filepath.Join(home, ".goc")
-	configPath = filepath.Join(home, ".goc/config.yaml")
-}
-
-var box = packr.New("", "./goc_default")
-
-// create parent directories for path.
-func createParents(path string) error {
-	dir := filepath.Dir(path)
-	if dir == "" {
-		return nil
-	}
-
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("MkdirAll: %v", err)
-	}
-	return nil
-}
+const templates = "templates" // for my sanity if i ever change this
 
 var (
 	home       string // ~/
@@ -60,7 +37,21 @@ var (
 	configPath string // ~/.goc/config.yaml
 )
 
+func init() {
+	var err error
+	home, err = homedir.Dir()
+	if err != nil {
+		log.Fatalf("getting home directory: %v", err)
+	}
+
+	goc = filepath.Join(home, ".goc")
+	configPath = filepath.Join(home, ".goc/config.yaml")
+}
+
 func main() {
+	// manage flags
+	flag.Usage = usage
+
 	d := flag.Bool("d", false, "print debug logs")
 	flag.Parse()
 
@@ -70,6 +61,12 @@ func main() {
 		log.DefaultLogger.Ldebug.SetOutput(os.Stderr)
 	}
 
+	// get the template dir to use
+	templateDir := flag.Arg(1)
+	if templateDir == "" {
+		templateDir = "default"
+	}
+
 	createDir()         // create ~/.goc if needed
 	conf := getConfig() // read ~/.goc/config.yaml and create it if needed
 
@@ -77,11 +74,6 @@ func main() {
 		Config:  conf,
 		Year:    time.Now().Year(),
 		Project: flag.Arg(0),
-	}
-
-	templateDir := flag.Arg(1)
-	if templateDir == "" {
-		templateDir = "default"
 	}
 
 	if err := proj.Create(templateDir); err != nil {
@@ -201,15 +193,15 @@ func usage() {
 	flag.PrintDefaults()
 }
 
-// get the current users home directory
-func homedir() (string, error) {
-	u, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	if u.HomeDir == "" {
-		return "", err
+// create parent directories for path.
+func createParents(path string) error {
+	dir := filepath.Dir(path)
+	if dir == "" {
+		return nil
 	}
 
-	return u.HomeDir, nil
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("MkdirAll: %v", err)
+	}
+	return nil
 }
