@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/fatih/color"
@@ -31,34 +32,46 @@ func (d DirCopy) Copy(src, dest string) error {
 // dispatch dispatches copy-funcs according to the mode.
 // Because this "dispatch" could be called recursively,
 // "info" MUST be given here, NOT nil.
-func (d DirCopy) dispatch(src, dest string, info os.FileInfo) error {
-	fmt.Printf("\t%s %s\n", color.GreenString("create"), info.Name())
+func (d DirCopy) dispatch(src, dst string, info os.FileInfo) error {
+	// parse the name as a template
+	t, err := d.Tmpl.Parse(dst)
+	if err != nil {
+		return fmt.Errorf("parse filename %q: %v", dst, err)
+	}
+
+	s := &strings.Builder{}
+	if err := t.Execute(s, d.Data); err != nil {
+		return fmt.Errorf("execute filename %q: %v", dst, err)
+	}
+
+	fmt.Printf("\t%s %s\n", color.GreenString("create"), s.String())
+	dst = s.String()
 
 	if info.Mode()&os.ModeSymlink != 0 {
-		return d.lcopy(src, dest, info)
+		return d.lcopy(src, dst, info)
 	}
 	if info.IsDir() {
-		return d.dcopy(src, dest, info)
+		return d.dcopy(src, dst, info)
 	}
-	return d.fcopy(src, dest, info)
+	return d.fcopy(src, dst, info)
 }
 
 // fcopy is for just a file,
 // with considering existence of parent directory
 // and file permission.
-func (d DirCopy) fcopy(src, dest string, info os.FileInfo) error {
+func (d DirCopy) fcopy(src, dst string, info os.FileInfo) error {
 
-	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
 		return err
 	}
 
-	f, err := os.Create(dest)
+	f, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	if err = os.Chmod(f.Name(), info.Mode()); err != nil {
+	if err = os.Chmod(dst, info.Mode()); err != nil {
 		return err
 	}
 
@@ -100,10 +113,10 @@ func (d DirCopy) dcopy(srcdir, destdir string, info os.FileInfo) error {
 
 // lcopy is for a symlink,
 // with just creating a new symlink by replicating src symlink.
-func (d DirCopy) lcopy(src, dest string, info os.FileInfo) error {
+func (d DirCopy) lcopy(src, dst string, info os.FileInfo) error {
 	src, err := os.Readlink(src)
 	if err != nil {
 		return err
 	}
-	return os.Symlink(src, dest)
+	return os.Symlink(src, dst)
 }
