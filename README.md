@@ -3,7 +3,7 @@ goc is a powerful project generation tool written in go,
 template files can be put in ~/.goc/templates and used without changing any code.
 
 ## Installation
-Download a binary from the releases page
+goc is fully self contained, simply download a binary from the releases page and you're good to go!
 
 ## Usage
 if template is not supplied the default for golang is used.
@@ -12,7 +12,7 @@ the default can be changed in ~/.goc/templates
 goc <projectname> [template]
 ```
 
-when creating templates you can hook into the following variables inside files.
+when creating templates you can hook into the following variables inside files and filenames.
 ```
 {{.Project}} | name of the project being created.
 {{.Year}}    | the current year, useful for licenses
