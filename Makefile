@@ -16,7 +16,7 @@ release:
 	CGO_ENABLED=0 GOOS=darwin packr  build $(LDFLAGS) -o bin/goc_mac64
 
 test:
-	@go test -cover ./...
+	@go test
 
 upx:
 	upx --best bin/*
