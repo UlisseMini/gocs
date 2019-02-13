@@ -1,6 +1,7 @@
 # goc
 goc is a powerful project generation tool written in go,
 template files can be put in ~/.goc/templates and used without changing any code.
+![gif](https://github.com/UlisseMini/goc/raw/master/pictures/example.gif)
 
 ## Installation
 goc is fully self contained, simply download a binary from the releases page and you're good to go!
@@ -21,7 +22,6 @@ when creating templates you can hook into the following variables inside files a
 ```
 
 ## Examples
-![example gif](https://github.com/UlisseMini/goc/raw/master/pictures/example.gif)
 
 ```bash
 # look inside the ~/.goc/templates/go directory and use templates from there to create
