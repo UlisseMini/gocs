@@ -21,6 +21,8 @@ when creating templates you can hook into the following variables inside files.
 ```
 
 ## Examples
+![example gif](https://github.com/UlisseMini/goc/raw/master/pictures/example.gif)
+
 ```bash
 # look inside the ~/.goc/templates/go directory and use templates from there to create
 # files.
