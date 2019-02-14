@@ -87,37 +87,28 @@ func createDir() {
 		return
 	}
 
-	// save our current working directory
-	original, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// return to the original directory we were in
-	defer func() {
-		if err := os.Chdir(original); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	if err := mkchdir(goc); err != nil {
+	// create ~/.goc
+	if err := os.Mkdir(goc, 0755); err != nil {
 		log.Fatal(err)
 	}
 
 	// unpack box into ~/.goc
-	err = box.Walk(func(path string, file packd.File) error {
+	err := box.Walk(func(path string, file packd.File) error {
+		log.Debugf("walk: %s", path)
+
+		dst := filepath.Join(goc, path)
 		// if it has a parent directory create it.
-		if err := createParents(path); err != nil {
+		if err := createParents(dst); err != nil {
 			return fmt.Errorf("walk: createParents: %v", err)
 		}
 
-		log.Debugf("walk: %s", path)
 		b, err := box.Find(path)
 		if err != nil {
 			log.Debugf("walk: find %q: %v", path, err)
 			return err
 		}
 
-		return ioutil.WriteFile(path, b, 0666)
+		return ioutil.WriteFile(dst, b, 0666)
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -173,17 +164,6 @@ func input(s *bufio.Scanner, prompt string) string {
 	}
 
 	return s.Text()
-}
-
-// make and chdir into a directory
-func mkchdir(path string) error {
-	// create the directory
-	if err := os.Mkdir(path, 0755); err != nil {
-		return err
-	}
-
-	// chdir into it
-	return os.Chdir(path)
 }
 
 func usage() {
