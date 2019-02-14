@@ -1,4 +1,4 @@
-# gocs
+# gocs - <b>go</b> <b>c</b>ommit <b>s</b>udoku
 gocs is a powerful project generation tool written in go,
 template files can be put in ~/.gocs/templates and used without changing any code.
 ![gif](https://github.com/UlisseMini/gocs/raw/master/pictures/example.gif)
