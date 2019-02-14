@@ -20,10 +20,10 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-// Only used on first program run, then unpacked to ~/.goc
-var box = packr.New("", "./goc_default")
+// Only used on first program run, then unpacked to ~/.gocs
+var box = packr.New("", "./gocs_default")
 
-// Config file struct, will be stored in ~/.goc/config.yaml
+// Config file struct, will be stored in ~/.gocs/config.yaml
 type Config struct {
 	Github string // Github username
 	Author string // Full name of the author
@@ -31,13 +31,13 @@ type Config struct {
 
 const (
 	templates   = "templates" // for my sanity if i ever change this
-	defaultTmpl = "default"   // default template in ~/.goc/templates/
+	defaultTmpl = "default"   // default template in ~/.gocs/templates/
 )
 
 var (
 	home       string // ~/
-	goc        string // ~/.goc
-	configPath string // ~/.goc/config.yaml
+	gocs       string // ~/.gocs
+	configPath string // ~/.gocs/config.yaml
 )
 
 func init() {
@@ -47,8 +47,8 @@ func init() {
 		log.Fatalf("getting home directory: %v", err)
 	}
 
-	goc = filepath.Join(home, ".goc")
-	configPath = filepath.Join(home, ".goc/config.yaml")
+	gocs = filepath.Join(home, ".gocs")
+	configPath = filepath.Join(home, ".gocs/config.yaml")
 }
 
 func main() {
@@ -70,8 +70,8 @@ func main() {
 		templateDir = defaultTmpl
 	}
 
-	createDir()         // create ~/.goc if needed
-	conf := getConfig() // read ~/.goc/config.yaml and create it if needed
+	createDir()         // create ~/.gocs if needed
+	conf := getConfig() // read ~/.gocs/config.yaml and create it if needed
 
 	proj := Project{
 		Config:  conf,
@@ -84,22 +84,22 @@ func main() {
 	}
 }
 
-// create the ~/.goc directory if it does not exist.
+// create the ~/.gocs directory if it does not exist.
 func createDir() {
-	if _, err := os.Stat(goc); err == nil {
+	if _, err := os.Stat(gocs); err == nil {
 		return
 	}
 
-	// create ~/.goc
-	if err := os.Mkdir(goc, 0755); err != nil {
+	// create ~/.gocs
+	if err := os.Mkdir(gocs, 0755); err != nil {
 		log.Fatal(err)
 	}
 
-	// unpack box into ~/.goc
+	// unpack box into ~/.gocs
 	err := box.Walk(func(path string, file packd.File) error {
 		log.Debugf("walk: %s", path)
 
-		dst := filepath.Join(goc, path)
+		dst := filepath.Join(gocs, path)
 		// if it has a parent directory create it.
 		if err := createParents(dst); err != nil {
 			return fmt.Errorf("walk: createParents: %v", err)
@@ -118,7 +118,7 @@ func createDir() {
 	}
 }
 
-// getConfig gets the config file from ~/.goc/config.yaml and returns it,
+// getConfig gets the config file from ~/.gocs/config.yaml and returns it,
 // if it does not exist it creates it.
 func getConfig() (conf Config) {
 	// Read the config file
@@ -172,7 +172,7 @@ func input(s *bufio.Scanner, prompt string) string {
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s: <project> [template]\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "<project> is the Project's name")
-	fmt.Fprintln(os.Stderr, "[template] is looked for in ~/.goc/")
+	fmt.Fprintln(os.Stderr, "[template] is looked for in ~/.gocs/")
 	flag.PrintDefaults()
 }
 

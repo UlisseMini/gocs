@@ -1,4 +1,4 @@
-// used for copying the ~/.goc directory and executing templates on every file.
+// used for copying the ~/.gocs directory and executing templates on every file.
 // taken from 'https://github.com/otiai10/copy' and modified to work with templates.
 package main
 

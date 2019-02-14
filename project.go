@@ -20,12 +20,12 @@ type Project struct {
 }
 
 // Create creates the project to the current directory + the project name,
-// templateDir is the template to use from ~/.goc/templates, and error is returned
+// templateDir is the template to use from ~/.gocs/templates, and error is returned
 // if it does not exist.
 func (p Project) Create(templateDir string) error {
 	initExists := false // true if '__init__` exists and is executeable
 	// directory to copy templates from
-	src := filepath.Join(goc, templates, templateDir)
+	src := filepath.Join(gocs, templates, templateDir)
 
 	// check for executeable '__init__'
 	initBinary := filepath.Join(src, "__init__")
