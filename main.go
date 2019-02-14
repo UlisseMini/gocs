@@ -20,7 +20,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-// Only used on first program run
+// Only used on first program run, then unpacked to ~/.goc
 var box = packr.New("", "./goc_default")
 
 // Config file struct, will be stored in ~/.goc/config.yaml
@@ -29,7 +29,10 @@ type Config struct {
 	Author string // Full name of the author
 }
 
-const templates = "templates" // for my sanity if i ever change this
+const (
+	templates   = "templates" // for my sanity if i ever change this
+	defaultTmpl = "default"   // default template in ~/.goc/templates/
+)
 
 var (
 	home       string // ~/
@@ -64,7 +67,7 @@ func main() {
 	// get the template dir to use
 	templateDir := flag.Arg(1)
 	if templateDir == "" {
-		templateDir = "default"
+		templateDir = defaultTmpl
 	}
 
 	createDir()         // create ~/.goc if needed
