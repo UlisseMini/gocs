@@ -22,10 +22,6 @@ TODO: Write development instructions here
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
-## TODO
-
-TODO: Write TODO list here
-
 ## Contributors
 
 - [{{.Author}}](https://github.com/{{.Github}}) - creator and maintainer
